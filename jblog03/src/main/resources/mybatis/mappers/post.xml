@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="post">
+	<select id="getPostsAndCategories" parameterType="string" resultType="postvo">
+		<![CDATA[
+		select c.no as catNo, c.name as catName, b.no as postNo, b.title as title, b.contents as contents, 
+		b.reg_date as reg_date, ifnull((b.cnt), '0') as postCounts
+		   from category c left join (select no, title, contents, reg_date, category_no, count(*) as cnt
+										from post
+										group by category_no) b 
+		on c.no = b.category_no
+		where c.blog_id = #{blog_id}
+		 order by reg_date desc
+		]]>
+	</select>
+	
+	<select id="getLatestPost" parameterType="string" resultType="postvo">
+		select b.no as postNo, b.title as title, b.contents as contents, 
+		b.reg_date as reg_date, b.category_no as catNo 
+		from post b join (select * from category order by no desc limit 1) c 
+		on c.no = b.category_no where c.blog_id = #{blog_id} order by reg_date desc
+	</select>
+	
+	<select id="getPostByCat" parameterType="categoryvo" resultType="postvo">
+		select b.no as postNo, b.title as title, b.contents as contents, 
+		b.reg_date as reg_date, b.category_no as catNo 
+		from post b join (select * from category where no=#{no}) c 
+		on c.no = b.category_no where c.blog_id = #{blog_id} order by reg_date desc
+	</select>
+	
+	<select id="getPost" parameterType="postvo" resultType="postvo">
+		select title, contents from post where no=#{postNo} and category_no=#{catNo}
+	</select>
+	
+	<select id="getCategories" parameterType="string" resultType="categoryvo">
+		select c.no as no, c.name as name, ifnull((b.cnt) , '0') as postCounts
+			   from category c left join (select category_no ,count(*) as cnt
+											from post
+											group by category_no) b 
+				on c.no = b.category_no
+				where c.blog_id = #{blog_id}
+			    order by no desc
+	</select>
+	
+
+</mapper>

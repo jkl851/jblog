@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="site">
+	<select id="getImageTitle" parameterType="String" resultType="blogvo">
+		<![CDATA[
+		select id, title, logo from blog where id=#{blogId}
+		]]>
+	</select>
+	
+	<update id="insert" parameterType="blogvo">
+		<![CDATA[
+		update blog set title=#{title }, logo=#{logo } where id=#{id }
+		]]>	
+	</update>
+	
+	<update id="insertOnlyTitle" parameterType="map">
+		<![CDATA[
+		update blog set title=#{title } where id=#{blogId }
+		]]>	
+	</update>
+	
+	<select id="getCategoryPostCounts" parameterType="String" resultType="categoryvo">
+		<![CDATA[
+		select c.no as no, c.name as name, c.desc as description, c.blog_id as blog_id, ifnull((b.cnt) , '0') as postCounts
+		   from category c left join (select category_no ,count(*) as cnt
+										from post
+										group by category_no) b 
+			on c.no = b.category_no
+			where c.blog_id = #{blogId }
+		]]>
+	</select>
+	
+	<select id="getCategories" parameterType="String" resultType="categoryvo">
+		<![CDATA[
+		select name from category where blog_id= #{blogId }
+		]]>
+	</select>
+	
+	<delete id="categoryDel" parameterType="long">
+		<![CDATA[
+		delete from category where no=#{no }
+		]]>
+	</delete>
+	
+	<insert id="categoryAdd" parameterType="categoryvo">
+		<![CDATA[
+		insert into category values (null, #{name }, #{description }, #{blog_id })
+		]]>	
+	</insert>
+	
+	<insert id="writePost" parameterType="map">
+		<![CDATA[
+		insert into post(no, title, contents, reg_date, category_no) 
+		select null, #{title }, #{contents }, now(), no from category where name=#{categoryName } and blog_id=#{blogId }
+		]]>	
+	</insert>
+
+	
+</mapper>
