@@ -39,13 +39,6 @@ public class BlogService {
 		return blogRepository.getLatestPost(blogId);
 	}
 	
-	public List<PostVo> getLatestPost(String blogId, Long categoryNo) {
-		CategoryVo vo = new CategoryVo();
-		vo.setBlog_id(blogId);
-		vo.setNo(categoryNo);
-		return blogRepository.getLatestPost(vo);
-	}
-	
 	public PostVo getPost(String blogId, Long categoryNo, Long postNo) {
 		PostVo vo = new PostVo();
 		vo.setBlog_id(blogId);

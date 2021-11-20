@@ -15,7 +15,8 @@ for(var i=0; i< nameOfLis.length; i++) {
 		lis[i].className = "selected";
 	}
   }
-}
+};
+
 </script>
 
 	<ul class="menu">

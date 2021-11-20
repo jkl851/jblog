@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.douzone.jblog.security.Auth;
 import com.douzone.jblog.security.AuthUser;
 import com.douzone.jblog.service.AdminService;
 import com.douzone.jblog.service.BlogService;
@@ -43,7 +44,7 @@ public class BlogController {
 		if(categoryNo != null && postNo != null) {
 			PostVo post = blogService.getPost(blogId, categoryNo, postNo);
 			BlogVo blogVo = blogService.getImageTitle(blogId);
-			List<PostVo> postList = blogService.getLatestPost(blogId, categoryNo);
+			List<PostVo> postList = adminService.getLatestPost(blogId, categoryNo);
 			List<CategoryVo> catList = blogService.getCategories(blogId);
 			model.addAttribute("blogVo", blogVo);
 			model.addAttribute("postList", postList);
@@ -53,7 +54,7 @@ public class BlogController {
 			
 		} else if(categoryNo != null) {
 			BlogVo blogVo = blogService.getImageTitle(blogId);
-			List<PostVo> postList = blogService.getLatestPost(blogId, categoryNo);
+			List<PostVo> postList = adminService.getLatestPost(blogId, categoryNo);
 			List<CategoryVo> catList = blogService.getCategories(blogId);
 			model.addAttribute("blogVo", blogVo);
 			model.addAttribute("postList", postList);
@@ -75,27 +76,25 @@ public class BlogController {
 		}
 	}
 	
+	@Auth
 	@RequestMapping(value="/admin", method=RequestMethod.GET)
 	public String getToAdmin (
-			@AuthUser UserVo authUser,
 			@PathVariable("id") String blogId, 
 			Model model) {
-		if(blogId.equals(authUser.getId())) {
-			
+
 			BlogVo vo = blogService.getImageTitle(blogId);
 			servletContext.setAttribute("imgTitleVo", vo);
 			return "blog/blog-admin-basic";
-		}
-		return "redirect:/user/login";
 	}
 	
+	@Auth
 	@RequestMapping(value="/admin", method=RequestMethod.POST)
 	public String adminPostImage (
 			@AuthUser UserVo authUser,
 			@PathVariable("id") String blogId, 
 			@RequestParam(value="title", required=true, defaultValue="") String title,
 			@RequestParam("logo-file") MultipartFile file) {
-		if(blogId.equals(authUser.getId())) {
+
 			if(file.isEmpty()) {
 				blogService.saveImage(title, blogId);
 				return "redirect:/"+ blogId +"/admin";
@@ -103,61 +102,76 @@ public class BlogController {
 			blogService.saveImage(file, title, blogId);
 			return "redirect:/"+ blogId +"/admin";
 			}
-		}
-		return "redirect:/user/login";
 	}
 	
-	@RequestMapping(value="/admin/category", method=RequestMethod.GET)
-	public String getToAdminCategory (
-			@AuthUser UserVo authUser,
-			@PathVariable("id") String blogId,
-			Model model) {
-		if(blogId.equals(authUser.getId())) {
-			List<BlogVo> list = adminService.getCategoryPostCounts(blogId);
-			model.addAttribute("list", list);
+	@Auth
+	@RequestMapping(value="/admin/category")
+	public String getToAdminCategory () {
 			return "blog/blog-admin-category";
-		}
-		return "redirect:/user/login";
 	}
-	
+	/*
+	@Auth
 	@RequestMapping(value="/admin/category", method=RequestMethod.POST)
 	public String adminPostCategory (
-			@AuthUser UserVo authUser,
 			@PathVariable("id") String blogId,
-			@RequestParam(value = "name", required = true, defaultValue = "") String name,
-			@RequestParam(value = "desc", required = true, defaultValue = "") String desc) {
-		if(blogId.equals(authUser.getId())) {
+			@RequestParam(value = "name", required = true, defaultValue = "미분류") String name,
+			@RequestParam(value = "desc", required = true, defaultValue = "내용 없음") String desc) {
+
 			adminService.categoryAdd(blogId, name, desc);
 			return "redirect:/"+ blogId +"/admin/category";
-		}
-		return "redirect:/user/login";
 	}
 	
-	@RequestMapping(value="/admin/delete/{categoryNo}", method=RequestMethod.GET)
+	@Auth
+	@RequestMapping(value="/admin/delete", method=RequestMethod.POST)
 	public String adminDelCategory (
-			@AuthUser UserVo authUser,
 			@PathVariable("id") String blogId,
-			@PathVariable("categoryNo") Long no) {
-		if(blogId.equals(authUser.getId())) {
+			@RequestParam(value = "no", required = true, defaultValue = "") Long no) {
+
 			adminService.categoryDel(no);
 			return "redirect:/"+ blogId +"/admin/category";
-		}
-		return "redirect:/user/login";
 	}
 	
+
+	@ResponseBody
+	@GetMapping("/check/{no}")
+	public JsonResult checkDel(
+			@PathVariable("id") String blogId,
+			@PathVariable("no") Long no) {
+		Map<String, Object> map = new HashMap<>();
+		boolean lastCategory = false;
+		boolean existPost = false;
+
+		List<CategoryVo> catList = blogService.getCategories(blogId);
+		
+		if(catList.size() == 1) {
+			lastCategory = true;
+		}
+		
+		List<PostVo> postList = blogService.getLatestPost(blogId, no);
+	
+		if(postList.size() != 0) {
+			existPost = true;
+		}
+		
+		map.put("lastCategory", lastCategory);
+		map.put("existPost", existPost);
+
+		return JsonResult.success(map);
+	}
+	*/
+	@Auth
 	@RequestMapping(value="/admin/write", method=RequestMethod.GET)
 	public String getToAdminWrite (
 			@AuthUser UserVo authUser,
 			@PathVariable("id") String blogId,
 			Model model) {
-		if(blogId.equals(authUser.getId())) {
+
 			List<BlogVo> list = adminService.getCategories(blogId);
 			model.addAttribute("list", list);
 			return "blog/blog-admin-write";
-		}
-		return "redirect:/user/login";
 	}
 	
+	@Auth
 	@RequestMapping(value="/admin/write", method=RequestMethod.POST)
 	public String adminPostWrite (
 			@AuthUser UserVo authUser,
@@ -166,13 +180,11 @@ public class BlogController {
 			@RequestParam(value = "category", required = true, defaultValue = "") String categoryName,
 			@RequestParam(value = "contents", required = true, defaultValue = "") String contents,
 			Model model) {
-		if(blogId.equals(authUser.getId())) {
+		
 			adminService.writePost(blogId, categoryName, title, contents);
 			List<BlogVo> list = adminService.getCategories(blogId);
 			model.addAttribute("list", list);
 			return "blog/blog-admin-write";
-		}
-		return "redirect:/user/login";
 	}
 	
 }

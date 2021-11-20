@@ -1,0 +1,12 @@
+<tr>
+	<td><%=vo.no %></td>
+	<td><%=vo.name %></td>
+	<td><%=vo.postCounts %></td>
+	<td><%=vo.description %></td>
+	<td>
+	<form class="form-delete" method="post" 
+	      action="/<%=authUser.id %>/admin/delete">
+		<input type="hidden" name="no" value="<%=vo.no %>" >
+		<input class="btn-delete" type="submit" value="삭제">	
+	</form></td>
+</tr>  

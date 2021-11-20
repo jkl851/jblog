@@ -51,6 +51,16 @@ public class AuthInterceptor extends HandlerInterceptorAdapter {
 		//7. 권한(Authorization) 체크를 위해서 @Auth의 role 가져오기("USER", "ADMIN")
 		String role = auth.role();
 		
+		//jblog URL 아이디와 authUser아이디 검증
+		String urlID = request.getRequestURI();
+		String[] splitID = urlID.split("/");
+		if(authUser.getId().equals(splitID[2]) == false) {
+			if(authUser.getId().equals(splitID[3]) == false) { // 카테고리 api URL 체크
+				response.sendRedirect(request.getContextPath() + "/user/login");
+				return false;
+			}
+		}
+		
 		//8. 권한 체크
 		// 과제
 		if(role.equals("USER")) {

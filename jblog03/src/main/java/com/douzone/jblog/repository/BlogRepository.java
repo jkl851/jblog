@@ -37,10 +37,6 @@ public class BlogRepository {
 		return sqlSession.selectList("post.getLatestPost", blogId);
 	}
 	
-	public List<PostVo> getLatestPost(CategoryVo vo) {
-		return sqlSession.selectList("post.getPostByCat", vo);
-	}
-	
 	public PostVo getPost(PostVo vo) {
 		return sqlSession.selectOne("post.getPost", vo);
 	}

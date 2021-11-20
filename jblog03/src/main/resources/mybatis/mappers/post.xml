@@ -17,7 +17,7 @@
 	<select id="getLatestPost" parameterType="string" resultType="postvo">
 		select b.no as postNo, b.title as title, b.contents as contents, 
 		b.reg_date as reg_date, b.category_no as catNo 
-		from post b join (select * from category order by no desc limit 1) c 
+		from post b join (select * from category where blog_id = #{blog_id} order by no desc limit 1) c 
 		on c.no = b.category_no where c.blog_id = #{blog_id} order by reg_date desc
 	</select>
 	
