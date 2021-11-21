@@ -2,18 +2,27 @@
 	for(var i= 0; i < data.length; i++) {
 		var vo = data[i];
 %>
-<tr>
+<tr data-no='<%=vo.no %>' id="cat-list">
 	<td><%=vo.no %></td>
 	<td><%=vo.name %></td>
 	<td><%=vo.postCounts %></td>
 	<td><%=vo.description %></td>
+	
+	<% if(vo.postCounts == 0 && vo.name != '미분류'){ %>
 	<td>
-	<form class="form-delete" method="post" 
-	      action="/<%=authUser.id %>/admin/delete">
-		<input type="hidden" name="no" value="<%=vo.no %>" >
-		<input class="btn-delete" type="submit" value="삭제">	
-	</form></td>
-</tr>  
+	    <button class="btn-delete">
+			<img src="/jblog03/assets/images/delete.jpg"/>
+			<input class="delete-no" type="hidden" name="no" value="<%=vo.no %>"/>
+		</button>
+	</td>
+	
+    <% 
+    } else if (vo.postCounts > 0 || vo.name == '미분류') { 
+    %>
+    <td></td>	
+    
+    <% } %>
+</tr> 
 <%
 	}
 %>

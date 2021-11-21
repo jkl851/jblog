@@ -9,8 +9,8 @@
 <title>JBlog</title>
 <Link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/jblog.css" />
 <style type="text/css">
-input.btn-delete {
-	background-image: url('${pageContext.request.contextPath}/assets/images/delete.jpg');
+img .btn-delete {
+	src: url('${pageContext.request.contextPath}/assets/images/delete.jpg');
     background-position:  0px 0px;
     background-repeat: no-repeat;
     font-size: 0;
@@ -26,82 +26,99 @@ input.btn-delete {
 <script type="text/javascript" src="${pageContext.request.contextPath }/assets/js/ejs/ejs.js"></script>
 <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 	<script>
-		console.log('코드 시작 지점');
+		console.log('코드 시작');
 		var listItemTemplate = new EJS({
 			url: "${pageContext.request.contextPath }/assets/js/ejs/listitem-template.ejs"
 		});
 		var listTemplate = new EJS({
 			url: "${pageContext.request.contextPath }/assets/js/ejs/list-template.ejs"
 		});
-		console.log('fetchList 전 지점');
+
 	
 		/// 카테고리 리스트 가져오기
 		var catList = function() {
-	
-		console.log('ajax 시작');
-		$.ajax({
-			url: '${pageContext.request.contextPath }/api/${authUser.id }/admin/category',
-			async: true,
-			type: 'get',
-			dataType: 'json',
-			data: '',
-			success: function(response){
-				if(response.result != "success"){
-					console.error(response.message);
-					return;
+			console.log('ajax 실행')
+			$.ajax({
+				url: '${pageContext.request.contextPath }/api/${authUser.id }/admin/category',
+				async: true,
+				type: 'get',
+				dataType: 'json',
+				data: '',
+				success: function(response){
+					if(response.result != "success"){
+						console.error(response.message);
+						return;
+					}
+					var html = listTemplate.render(response);
+					$(".admin-cat tbody").append(html);
+				},
+				error: function(xhr, status, e){
+					console.error(status + ":" + e);
 				}
-				var html = listTemplate.render(response);
-				$("#cat-list").append(html);
-			},
-			error: function(xhr, status, e){
-				console.error(status + ":" + e);
-			}
-		})
-		console.log('ajax 끝');
-	} 
-	
-		console.log('ajax 문단 뒤');
-		
-		// 카테고리 삭제 validation
+			})
+		} 
+
 		
 		$(function(){
-			$(".form-delete").submit(function(event) {
+			$('.cat-form').submit(function(event){
+				event.preventDefault();
+				var vo = {};
+				vo.name = document.getElementsByName("name")[0].value
+				if(vo.name == '미분류'){
+					alert('미분류를 카테고리명으로 지정할 수 없습니다.');
+					return
+				}
+				vo.description = document.getElementsByName("desc")[0].value
+				if(vo.description == ''){
+					vo.description = '내용없음';
+				}
+				console.log(vo)
+
+				
+				 $.ajax({
+	                 url: '${pageContext.request.contextPath }/api/${authUser.id }/admin/category',
+	                 dataType: "json",
+	                 type: "post",
+	                 contentType: "application/json",
+	                 data: JSON.stringify(vo),
+	                 success: function (response) {
+	                     var html = listItemTemplate.render(response);
+	                     $(".admin-cat tbody").append(html);
+	                 },
+	                 error: function (xhr, code, message) {
+	                     console.error(message);
+	                 }
+	             });
+	         });
+
+		});
+		
+		
+		// 카테고리 삭제 
+		$(document).on('click', '.btn-delete', function(event){
 				event.preventDefault();
 				var _this = this;
-				var id = "${authUser.id }";
-				var no = this.elements[0].value; //카테고리 넘버
-				if(id == '') {
-					return;
-				}
-				 
+				var no = $(this).find("input").val() //카테고리 넘버
 				$.ajax({
-					url: "${pageContext.request.contextPath }/"+ id +"/check/" + no,
-					type: "get",
-					dataType: 'json',
-					error: function(xhr, status, e) {
-						console.log(status, e);
-					},
-					success: function(response) {
-						if(response.result != "success") {
-							console.error("response message : " + response.message);
-							return;
-						}
-						
-						if(response.data['existPost']) {
-							alert("해당 카테고리에 글이 존재합니다.");
-							return;
-						}
-						
-						if(response.data['lastCategory']) {
-							alert("카테고리는 1개 이상이어야 합니다.");
-							return;
-						}
-						
-						_this.submit();
-					}
-				});		
-			});	
-		});
+	                 url: '${pageContext.request.contextPath }/api/${authUser.id }/admin/category/del/' + no,
+	                 dataType: "json",
+	                 type: "post",
+	                 contentType: "application/json",
+	                 data: "no=" + no,
+	                 success: function (response) {
+	                	 
+	                     if(response.data != -1){
+	                    	 	console.log('삭제리로드  ' + response.data)
+	                    	 	console.log('태그확인  ' + $(".admin-cat tbody[data-no=" + response.data + "]"))
+								$("#admin-cat tr[data-no=" + response.data + "]").remove();
+							} 
+	                 },
+	                 error: function (xhr, code, message) {
+	                     console.error(message);
+	                 }
+	             });
+			});
+		catList();
 	</script>
 </head>
 <body>
@@ -114,7 +131,7 @@ input.btn-delete {
 		<div id="wrapper">
 			<div id="content" class="full-screen">
 				<c:import url="/WEB-INF/views/includes/admin-menu.jsp" />
-		      	<table class="admin-cat">
+		      	<table class="admin-cat" id="admin-cat">
 		      			<tr>
 			      			<th>번호</th>
 			      			<th>카테고리명</th>
@@ -123,10 +140,10 @@ input.btn-delete {
 			      			<th>삭제</th>      			
 			      		</tr>
 		      		
-						<tr id="cat-list">
-							<!-- Ajax로 받은 list -->
-						</tr>  
-										  
+						
+						<!-- Ajax로 받은 list 위치 -->
+					
+				  
 				</table>
 
       			<h4 class="n-c">새로운 카테고리 추가</h4>
@@ -134,11 +151,11 @@ input.btn-delete {
 			      	<table id="admin-cat-add">
 			      		<tr>
 			      			<td class="t">카테고리명</td>
-			      			<td><input type="text" name="name"></td>
+			      			<td><input id="input-name" type="text" name="name"></td>
 			      		</tr>
 			      		<tr>
 			      			<td class="t">설명</td>
-			      			<td><input type="text" name="desc"></td>
+			      			<td><input id="input-desc" type="text" name="desc"></td>
 			      		</tr>
 			      		<tr>
 			      			<td class="s">&nbsp;</td>

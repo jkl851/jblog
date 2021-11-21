@@ -29,6 +29,10 @@ public class AdminRepository {
 		return sqlSession.selectList("post.getCategories", blogId);
 	}
 	
+	public CategoryVo getCategoryAjax(String blogId) {
+		return sqlSession.selectOne("post.getCategory", blogId);
+	}
+	
 	public List<PostVo> getLatestPost(CategoryVo vo) {
 		return sqlSession.selectList("post.getPostByCat", vo);
 	}
@@ -37,8 +41,8 @@ public class AdminRepository {
 		return 1 == sqlSession.delete("site.categoryDel", no);
 	}
 	
-	public Boolean categoryAdd(CategoryVo vo) {
-		return 1 == sqlSession.insert("site.categoryAdd", vo);
+	public void categoryAdd(CategoryVo vo) {
+		sqlSession.insert("site.categoryAdd", vo);
 	}
 	
 	public Boolean writePost(Map<String, Object> map) {

@@ -31,6 +31,10 @@ public class AdminService {
 		return adminRepository.getCategoriesAjax(blogId);
 	}
 	
+	public CategoryVo getCategoryAjax(String blogId) {
+		return adminRepository.getCategoryAjax(blogId);
+	}
+	
 	public List<PostVo> getLatestPost(String blogId, Long categoryNo) {
 		CategoryVo vo = new CategoryVo();
 		vo.setBlog_id(blogId);
@@ -42,12 +46,8 @@ public class AdminService {
 		return adminRepository.categoryDel(no);
 	}
 	
-	public Boolean categoryAdd(String blogId, String name, String desc) {
-		CategoryVo vo = new CategoryVo();
-		vo.setBlog_id(blogId);
-		vo.setName(name);
-		vo.setDescription(desc);
-		return adminRepository.categoryAdd(vo);
+	public void categoryAdd(CategoryVo vo) {
+		adminRepository.categoryAdd(vo);
 	}
 	
 	public Boolean writePost(String blogId, String categoryName, String title, String contents) {
